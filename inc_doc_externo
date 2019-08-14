@@ -1,0 +1,122 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
+import time
+from datetime import date
+from selenium.webdriver.common.by import By
+import xlrd
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+print('Iniciando nosso robo... \n')
+
+driver = webdriver.Chrome()
+driver.get('https://seihm.anatel.gov.br/')
+
+
+
+logar = driver.find_element_by_id("txtUsuario")
+logar.send_keys('lauro.silveira') #Indicar o usuário
+# time.sleep(1) #Espera
+senh = driver.find_element_by_id("pwdSenha")
+senha = ('') # Digitar a senha entre as ''
+# time.sleep(5) #espera a senha
+senh.send_keys(senha)
+logar.send_keys(Keys.RETURN)
+time.sleep(1)  # espera a senha
+driver.maximize_window()
+
+for handle in driver.window_handles:
+    driver.switch_to.window(handle)
+
+driver.close()
+
+for handle in driver.window_handles:
+    driver.switch_to.window(handle)
+
+novo_doc = 1
+
+
+while novo_doc != 0:
+
+    print('[ 1 ] Sim   [ 0 ] Não')
+    novo_doc = int(input(('Deseja inserir um novo documento? ')))
+
+
+    if novo_doc == 1:
+        np = str(input('Insira o número da NP: ')).strip().upper()
+        arquivo = (f'C://Users/lauro.silveira/PycharmProjects/cursoemvideo/{np}.pdf')
+        data_atual = date.today()
+
+
+        pesq = driver.find_element_by_id('txtPesquisaRapida')
+        processo = str(input('Insira o número do processo: ')).strip()
+        pesq.send_keys(processo)
+        pesq.send_keys(Keys.RETURN)
+
+
+        time.sleep(1)
+
+
+        frame = driver.switch_to.frame("ifrVisualizacao")
+        driver.find_element_by_xpath("//*[@id='divArvoreAcoes']/a[1]").click()
+        driver.find_element_by_xpath("//*[@id='tblSeries']/tbody/tr[1]").click()
+
+        element = driver.find_element_by_id('selSerie')
+
+
+        drp = Select(element) #Dropdown
+        drp.select_by_visible_text('Relatório')
+
+
+        numero = driver.find_element_by_id("txtNumero")
+        numero.send_keys(np)
+
+
+        time.sleep(1)
+
+
+        driver.find_element_by_id('filArquivo').send_keys(arquivo)
+
+        radioElement = driver.find_element_by_id('divOptPublico')
+        radioElement.click()
+
+        radioElement2 = driver.find_element_by_id('lblNato')
+        radioElement2.click()
+
+
+
+        data_atual = date.today() #Variável
+        data_em_texto = data_atual.strftime('%d/%m/%Y')
+
+        data_doc = driver.find_element_by_id('txtDataElaboracao')
+        data_doc.send_keys(data_em_texto) #Data do documento
+
+
+        confirmar = driver.find_element_by_id('btnSalvar')
+        confirmar.click()
+
+
+
+        try:
+            WebDriverWait(driver, 3).until(EC.alert_is_present(),
+                                           'Timed out waiting for PA creation ' +
+                                           'confirmation popup to appear.')
+
+            alert = driver.switch_to.alert
+            alert.accept()
+            print("alert accepted")
+        except TimeoutException:
+            print("no alert")
+
+
+        for handle in driver.window_handles:
+            driver.switch_to.window(handle)
+    else:
+
+        print('Encerrando...')
+        time.sleep(5)  # Espera
+        driver.close()
