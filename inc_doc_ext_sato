@@ -1,0 +1,139 @@
+# INCLUIR PDFs (EXTRATO DE PAG. E SICAF) NO SEI.
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
+import time
+from datetime import date
+from selenium.webdriver.common.by import By
+#import xlrd
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+print('Iniciando nosso robo... \n')
+
+driver = webdriver.Chrome()
+driver.get('https://sei.anatel.gov.br/')
+
+logar = driver.find_element_by_id("txtUsuario")
+logar.send_keys('')  # Indicar o usuário
+# time.sleep(1) #Espera
+senh = driver.find_element_by_id("pwdSenha")
+senha = ('')  # Digitar a senha entre as ''
+# time.sleep(5) #espera a senha
+senh.send_keys(senha)
+logar.send_keys(Keys.RETURN)
+time.sleep(1)  # espera a senha
+driver.maximize_window()
+
+for handle in driver.window_handles:
+    driver.switch_to.window(handle)
+
+driver.close()
+
+for handle in driver.window_handles:
+    driver.switch_to.window(handle)
+
+novo_doc = 1
+np = str(input('Insira o número da NP: ')).strip().upper()
+processo = str(input('Insira o número do processo: ')).strip()
+tipo_doc = 1
+
+while novo_doc != 0:
+
+    novo_doc = int(input(('Novo documento? [1]Sim [0]Não: ')))
+
+    if novo_doc == 1:
+
+        mesma_np = int(input(('Mesma NP? [1]Sim [0]Não: ')))
+
+        if mesma_np == 1:
+            np == np
+        else:
+            np = str(input('Nova NP: ')).strip().upper()
+
+        tipo_doc = int(input(('Tipo: [1]Extrato [0]Sicaf: ')))
+
+        if tipo_doc == 0:
+            arquivo = (f'C://Users/guilherme.sato/ANATEL/OneDrive - ANATEL/Relatórios TG/SICAFs/{np}.pdf')#C:\Users\guilherme.sato\ANATEL\OneDrive - ANATEL\Relatórios TG\NPS PDF
+        else:
+            arquivo = (f'C://Users/guilherme.sato/ANATEL/OneDrive - ANATEL/Relatórios TG/NPS PDF/{np}.pdf')
+
+        data_atual = date.today()
+
+        mesmo_proc = int(input(('Mesmo Processo? [1]Sim [0]Não: ')))
+
+        if mesmo_proc == 1:
+            processo == processo
+        else:
+            processo = str(input('Novo Processo: ')).strip().upper()
+
+        pesq = driver.find_element_by_id('txtPesquisaRapida')
+        pesq.send_keys(processo)
+        pesq.send_keys(Keys.RETURN)
+
+        time.sleep(1)
+
+        frame = driver.switch_to.frame("ifrVisualizacao")
+        driver.find_element_by_xpath("//*[@id='divArvoreAcoes']/a[1]").click()
+        driver.find_element_by_xpath("//*[@id='tblSeries']/tbody/tr[1]").click()
+
+        element = driver.find_element_by_id('selSerie')
+
+        if tipo_doc == 0:
+            drp = Select(element)  # Dropdown
+            drp.select_by_visible_text('Declaração')
+
+            numero = driver.find_element_by_id("txtNumero")
+            numero.send_keys('SICAF - ', np)  # np dentro de ()
+
+        else:
+            drp = Select(element)  # Dropdown
+            drp.select_by_visible_text('Extrato')
+
+            numero = driver.find_element_by_id("txtNumero")
+            numero.send_keys('de pagamento - ', np)  # np dentro de ()
+
+        time.sleep(1.5)
+
+        driver.find_element_by_id('filArquivo').send_keys(arquivo)
+
+        radioElement = driver.find_element_by_id('divOptPublico')
+        radioElement.click()
+
+        radioElement2 = driver.find_element_by_id('lblNato')
+        radioElement2.click()
+
+        data_atual = date.today()  # Variável
+        data_em_texto = data_atual.strftime('%d/%m/%Y')
+
+        data_doc = driver.find_element_by_id('txtDataElaboracao')
+        data_doc.send_keys(data_em_texto)  # Data do documento
+
+        confirmar = driver.find_element_by_id('btnSalvar')
+        confirmar.click()
+
+        try:
+            WebDriverWait(driver, 3).until(EC.alert_is_present(),
+                                           'Timed out waiting for PA creation ' +
+                                           'confirmation popup to appear.')
+
+           alert = driver.switch_to.alert
+            alert.accept()
+            print("alert accepted")
+        except TimeoutException:
+            print("no alert")
+
+        for handle in driver.window_handles:
+            driver.switch_to.window(handle)
+
+        print('='*47)
+
+    else:
+
+        print('Encerrando...')
+        time.sleep(5)  # Espera
+        driver.close()
