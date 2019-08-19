@@ -1,4 +1,4 @@
-# INCLUIR PDFs (EXTRATO DE PAG. E SICAF) NO SEI.
+ # INCLUIR PDFs (EXTRATO DE PAG. E SICAF) NO SEI.by SATO
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
